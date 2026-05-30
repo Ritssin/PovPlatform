@@ -60,10 +60,10 @@ export default function DetailDrawer({
   const now = new Date();
 
   const overdue = pov?.actionItems.filter(a =>
-    a.status !== "DONE" && a.dueDate && new Date(a.dueDate) < now
+    a.status !== "Done" && a.dueDate && new Date(a.dueDate) < now
   ).length ?? 0;
 
-  const doneTasks = pov?.actionItems.filter(a => a.status === "DONE").length ?? 0;
+  const doneTasks = pov?.actionItems.filter(a => a.status === "Done").length ?? 0;
 
   const recentNotes = [...(pov?.updateLog ?? [])].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()

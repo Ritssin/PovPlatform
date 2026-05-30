@@ -39,15 +39,15 @@ export async function writeAuditLog({
   }
 }
 
-export function getDaysRemaining(endDate: Date | null): number | null {
+export function getDaysRemaining(endDate: Date | string | null | undefined): number | null {
   if (!endDate) return null;
-  const diff = endDate.getTime() - Date.now();
+  const diff = new Date(endDate).getTime() - Date.now();
   return Math.max(0, Math.ceil(diff / 86_400_000));
 }
 
 export function getPoVStatus(
   percentValidated: number,
-  endDate: Date | null
+  endDate: Date | string | null | undefined
 ): "DRAFT" | "ACTIVE" | "AT_RISK" | "COMPLETE" {
   if (percentValidated === 100) return "COMPLETE";
   const days = getDaysRemaining(endDate);

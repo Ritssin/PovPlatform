@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Role } from "@prisma/client";
+import { handleSignOut } from "@/lib/actions";
 
 interface Props {
   user: { name?: string | null; email?: string | null; image?: string | null; role: Role };
@@ -72,7 +73,7 @@ export default function AppShell({ user, children }: Props) {
               <p className="text-xs font-medium text-white">{user.name}</p>
               <p className="text-xs text-slate-400">{user.role}</p>
             </div>
-            <form action="/api/auth/signout" method="POST">
+            <form action={handleSignOut}>
               <button
                 type="submit"
                 className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded hover:bg-white/10 transition-colors"

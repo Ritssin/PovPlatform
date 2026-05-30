@@ -41,15 +41,28 @@ export async function PATCH(
   const canEdit = existing.ownerId === session.user.id || session.user.role === "ADMIN";
   if (!canEdit) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  // Accept any partial update — Zod passthrough allows unknown keys
-  const body = await req.json();
+  // Accept any partial update
+  const raw = await req.json();
+
+  // Prisma DateTime fields require Date objects or full ISO strings — convert date-only
+  // strings ("YYYY-MM-DD") that come from <input type="date"> elements.
+  const body = Object.fromEntries(
+    Object.entries(raw).map(([k, v]) => {
+      if ((k === "povStartDate" || k === "povEndDate")) {
+        if (typeof v === "string" && v) return [k, new Date(v)];
+        if (v === "" || v === null) return [k, null];
+      }
+      return [k, v];
+    })
+  );
 
   // Recompute denormalised dashboard fields from the merged PoV
   const merged = { ...existing, ...body };
   const { readinessScore, percentValidated, criteriaTotal, criteriaValidated } =
     computeDashboardFields(merged);
 
-  const statusStr = getPoVStatus(percentValidated, merged.povEndDate);
+  const endDateValue = merged.povEndDate ? new Date(merged.povEndDate as string | Date) : null;
+  const statusStr = getPoVStatus(percentValidated, endDateValue);
   const statusEnum = PoVStatus[statusStr as keyof typeof PoVStatus] ?? PoVStatus.DRAFT;
 
   const updated = await db.poV.update({

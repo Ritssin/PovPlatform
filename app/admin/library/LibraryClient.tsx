@@ -312,12 +312,18 @@ function CriteriaTab({ criteria, setCriteria }: { criteria: Criterion[]; setCrit
 
 // ── Outcomes Tab ──────────────────────────────────────────────────────────────
 
+const COLOR_OPTIONS = ["red","purple","blue","orange","teal","green","amber","indigo","cyan","pink","gray"];
+
 function OutcomesTab({
   outcomes, setOutcomes, allCriteria,
 }: { outcomes: Outcome[]; setOutcomes: (o: Outcome[]) => void; allCriteria: Criterion[] }) {
   const [editId,   setEditId]   = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Outcome>>({});
   const [saving,   setSaving]   = useState<string | null>(null);
+  const [showAdd,  setShowAdd]  = useState(false);
+  const [addError, setAddError] = useState("");
+  const blankOutcome = () => ({ id: "", title: "", icon: "", color: "blue", description: "", criteriaIds: [] as string[] });
+  const [newData,  setNewData]  = useState<Partial<Outcome>>(blankOutcome());
 
   async function save(id: string, data: Partial<Outcome>) {
     setSaving(id);
@@ -332,8 +338,87 @@ function OutcomesTab({
     setEditId(null);
   }
 
+  async function addOutcome() {
+    setAddError("");
+    if (!newData.id?.trim() || !newData.title?.trim()) { setAddError("ID and Title are required."); return; }
+    setSaving("__new__");
+    const res = await fetch("/api/library/outcomes", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...newData, sortOrder: outcomes.length }),
+    });
+    if (res.status === 409) { setAddError("An outcome with this ID already exists."); setSaving(null); return; }
+    if (res.ok) {
+      const created = await res.json();
+      setOutcomes([...outcomes, created]);
+      setNewData(blankOutcome());
+      setShowAdd(false);
+    }
+    setSaving(null);
+  }
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="space-y-4">
+      {/* Header + Add button */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => { setShowAdd(!showAdd); setAddError(""); setNewData(blankOutcome()); }}
+          className="bg-[#0049BD] hover:bg-blue-700 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors"
+        >
+          + Add outcome
+        </button>
+      </div>
+
+      {/* Add form */}
+      {showAdd && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-slate-700">New outcome</h3>
+          {addError && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-1.5">{addError}</p>}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="ID (slug, e.g. ransomware)" value={newData.id ?? ""} onChange={v => setNewData(d => ({...d, id: v.toLowerCase().replace(/\s+/g,"-")}))} />
+            <Field label="Title" value={newData.title ?? ""} onChange={v => setNewData(d => ({...d, title: v}))} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Icon (emoji)" value={newData.icon ?? ""} onChange={v => setNewData(d => ({...d, icon: v}))} />
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Color</label>
+              <select value={newData.color ?? "blue"} onChange={e => setNewData(d => ({...d, color: e.target.value}))}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                {COLOR_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <TextAreaField label="Description" value={newData.description ?? ""} onChange={v => setNewData(d => ({...d, description: v}))} />
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1">Linked criteria ({(newData.criteriaIds ?? []).length})</label>
+            <div className="max-h-32 overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1 bg-white">
+              {allCriteria.filter(c => c.active).map(c => (
+                <label key={c.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-50 rounded px-1">
+                  <input type="checkbox"
+                    checked={(newData.criteriaIds ?? []).includes(c.id)}
+                    onChange={e => setNewData(d => ({
+                      ...d,
+                      criteriaIds: e.target.checked
+                        ? [...(d.criteriaIds ?? []), c.id]
+                        : (d.criteriaIds ?? []).filter(id => id !== c.id),
+                    }))}
+                  />
+                  <span className="font-mono text-slate-500">{c.id}</span>
+                  <span className="text-slate-700 truncate">{c.requirement}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button onClick={addOutcome} disabled={saving === "__new__"}
+              className="bg-[#0049BD] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              {saving === "__new__" ? "Saving…" : "Save outcome"}
+            </button>
+            <button onClick={() => { setShowAdd(false); setAddError(""); }} className="text-slate-500 text-sm px-4 py-2 rounded-lg hover:bg-slate-100">Cancel</button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {outcomes.map(o => (
         <div key={o.id} className={`bg-white rounded-xl border border-slate-200 p-4 ${!o.active ? "opacity-50" : ""}`}>
           {editId === o.id ? (
@@ -397,6 +482,7 @@ function OutcomesTab({
           )}
         </div>
       ))}
+      </div>
     </div>
   );
 }
@@ -407,6 +493,9 @@ function PillarsTab({ pillars, setPillars }: { pillars: Pillar[]; setPillars: (p
   const [expandTag, setExpandTag] = useState<string | null>(null);
   const [editData,  setEditData]  = useState<Partial<Pillar>>({});
   const [saving,    setSaving]    = useState<string | null>(null);
+  const [showAdd,   setShowAdd]   = useState(false);
+  const [addError,  setAddError]  = useState("");
+  const [newPillar, setNewPillar] = useState({ tag: "", name: "", what: "", vsCompetitors: "" });
 
   async function save(tag: string, data: Partial<Pillar>) {
     setSaving(tag);
@@ -421,7 +510,64 @@ function PillarsTab({ pillars, setPillars }: { pillars: Pillar[]; setPillars: (p
     setExpandTag(null);
   }
 
+  async function addPillar() {
+    setAddError("");
+    if (!newPillar.tag.trim() || !newPillar.name.trim()) { setAddError("Tag and Name are required."); return; }
+    setSaving("__new__");
+    const res = await fetch("/api/library/pillars", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(newPillar),
+    });
+    if (res.status === 409) { setAddError("A pillar with this tag already exists."); setSaving(null); return; }
+    if (res.ok) {
+      const created = await res.json();
+      setPillars([...pillars, created]);
+      setNewPillar({ tag: "", name: "", what: "", vsCompetitors: "" });
+      setShowAdd(false);
+    }
+    setSaving(null);
+  }
+
   return (
+    <div className="space-y-4">
+      {/* Add button */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => { setShowAdd(!showAdd); setAddError(""); setNewPillar({ tag: "", name: "", what: "", vsCompetitors: "" }); }}
+          className="bg-[#0049BD] hover:bg-blue-700 text-white text-sm font-semibold px-4 py-1.5 rounded-lg transition-colors"
+        >
+          + Add pillar
+        </button>
+      </div>
+
+      {/* Add form */}
+      {showAdd && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-slate-700">New pillar</h3>
+          {addError && <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-1.5">{addError}</p>}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Tag (e.g. PLATFORM)</label>
+              <input
+                value={newPillar.tag}
+                onChange={e => setNewPillar(d => ({...d, tag: e.target.value.toUpperCase()}))}
+                placeholder="MYTAG"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <Field label="Name" value={newPillar.name} onChange={v => setNewPillar(d => ({...d, name: v}))} />
+          </div>
+          <TextAreaField label="What it means" value={newPillar.what} onChange={v => setNewPillar(d => ({...d, what: v}))} rows={3} />
+          <TextAreaField label="vs Competitors" value={newPillar.vsCompetitors} onChange={v => setNewPillar(d => ({...d, vsCompetitors: v}))} rows={3} />
+          <div className="flex gap-2 pt-1">
+            <button onClick={addPillar} disabled={saving === "__new__"}
+              className="bg-[#0049BD] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              {saving === "__new__" ? "Saving…" : "Save pillar"}
+            </button>
+            <button onClick={() => { setShowAdd(false); setAddError(""); }} className="text-slate-500 text-sm px-4 py-2 rounded-lg hover:bg-slate-100">Cancel</button>
+          </div>
+        </div>
+      )}
+
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <table className="w-full text-sm">
         <thead>
@@ -470,6 +616,7 @@ function PillarsTab({ pillars, setPillars }: { pillars: Pillar[]; setPillars: (p
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }
