@@ -1,0 +1,132 @@
+"use client";
+
+import { useState } from "react";
+import { Role } from "@prisma/client";
+
+type User = {
+  id:        string;
+  name:      string | null;
+  email:     string;
+  role:      Role;
+  createdAt: Date;
+};
+
+const ROLE_LABELS: Record<Role, string> = {
+  SE:      "SE",
+  SME:     "SME",
+  MANAGER: "Manager",
+  ADMIN:   "Admin",
+};
+
+const ROLE_COLORS: Record<Role, string> = {
+  SE:      "bg-blue-100 text-blue-700",
+  SME:     "bg-purple-100 text-purple-700",
+  MANAGER: "bg-amber-100 text-amber-700",
+  ADMIN:   "bg-green-100 text-green-700",
+};
+
+export default function UsersClient({ users: initial }: { users: User[] }) {
+  const [users, setUsers] = useState(initial);
+  const [loading, setLoading] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editRole, setEditRole] = useState<Role>(Role.SE);
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this user? This cannot be undone.")) return;
+    setLoading(id);
+    await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+    setUsers(u => u.filter(x => x.id !== id));
+    setLoading(null);
+  }
+
+  async function handleRoleChange(id: string) {
+    setLoading(id);
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method:  "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ role: editRole }),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      setUsers(u => u.map(x => x.id === id ? { ...x, role: updated.role } : x));
+    }
+    setEditId(null);
+    setLoading(null);
+  }
+
+  if (users.length === 0) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-400 text-sm">
+        No users yet. Create the first user above.
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-slate-200 bg-slate-50">
+            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Name</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Role</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Created</th>
+            <th className="px-4 py-3" />
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {users.map(user => (
+            <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+              <td className="px-4 py-3 font-medium text-slate-800">{user.name ?? "—"}</td>
+              <td className="px-4 py-3 text-slate-600">{user.email}</td>
+              <td className="px-4 py-3">
+                {editId === user.id ? (
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={editRole}
+                      onChange={e => setEditRole(e.target.value as Role)}
+                      className="text-xs border border-slate-300 rounded px-2 py-1"
+                    >
+                      {Object.values(Role).map(r => (
+                        <option key={r} value={r}>{ROLE_LABELS[r]}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => handleRoleChange(user.id)}
+                      disabled={loading === user.id}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Save
+                    </button>
+                    <button onClick={() => setEditId(null)} className="text-xs text-slate-400 hover:text-slate-600">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setEditId(user.id); setEditRole(user.role); }}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${ROLE_COLORS[user.role]} hover:opacity-75 transition-opacity`}
+                  >
+                    {ROLE_LABELS[user.role]}
+                  </button>
+                )}
+              </td>
+              <td className="px-4 py-3 text-slate-400 text-xs">
+                {new Date(user.createdAt).toLocaleDateString()}
+              </td>
+              <td className="px-4 py-3 text-right">
+                <button
+                  onClick={() => handleDelete(user.id)}
+                  disabled={loading === user.id}
+                  className="text-xs text-red-500 hover:text-red-700 font-medium disabled:opacity-40"
+                >
+                  {loading === user.id ? "..." : "Delete"}
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

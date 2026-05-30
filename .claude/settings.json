@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(mkdir -p \"c:/VSCODE/sophos-pov-platform/app/api/admin/users\" && mkdir -p \"c:/VSCODE/sophos-pov-platform/app/api/admin/users/[id]\")",
+      "Bash(npm run *)"
+    ],
+    "additionalDirectories": [
+      "c:\\VSCODE\\sophos-pov-platform\\app\\api\\admin\\users"
+    ]
+  }
+}

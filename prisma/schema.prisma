@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ── Auth (NextAuth Prisma adapter) ────────────────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String    @unique
+  image     String?
+  password  String?   // bcrypt hash; null for future SSO-only accounts
+  role      Role      @default(SE)
+  povs      PoV[]
+  auditLogs AuditLog[]
+  accounts  Account[]
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum Role {
+  SE
+  SME
+  MANAGER
+  ADMIN
+}
+
+// ── PoV Records ───────────────────────────────────────────────────────────────
+
+model PoV {
+  id        String @id @default(cuid())
+  ownerId   String
+  owner     User   @relation(fields: [ownerId], references: [id])
+  ownerType String @default("SE") // SE | SME
+
+  // Engagement Details — Step 1
+  customerName      String
+  customerIndustry  String  @default("")
+  salesEngineer     String  @default("") // Sophos Contact name
+  partnerName       String  @default("")
+  executiveSponsor  String  @default("")
+  opportunityValue  String  @default("")
+
+  // Readiness scores — Step 1 (1–5)
+  scoreExecutive   Int @default(3)
+  scoreUseCase     Int @default(3)
+  scoreUrgency     Int @default(3)
+  scoreCompetition Int @default(3)
+  scoreReadiness   Int @default(3)
+  scoreAlignment   Int @default(3)
+
+  // Scope — Step 2
+  selectedProducts Json   @default("[]") // String[]
+  driverItems      Json   @default("[]") // {id,text}[]
+  businessDrivers  String @default("")
+  riskItems        Json   @default("[]") // {id,text}[]
+  selectedOutcomes Json   @default("[]") // outcomeId[]
+  planCriteria     Json   @default("[]") // criterionId[] (ordered)
+  criteriaEdits    Json   @default("{}") // {[criterionId]: {field: value}}
+  customCriteria   Json   @default("[]") // [{id,product,requirement,...}]
+  milestones       Json   @default("[]") // [{id,week,activity}]
+
+  // Dates
+  povStartDate DateTime?
+  povEndDate   DateTime?
+
+  // Execution — Step 3
+  trackingData   Json   @default("{}") // {[criterionId]: {status,findings,owner}}
+  actionItems    Json   @default("[]") // [{id,task,owner,dueDate,priority,status}]
+  updateLog      Json   @default("[]") // [{id,date,title,text}]
+  outcomeSummary String @default("")
+  nextSteps      String @default("")
+
+  // Denormalised dashboard fields (recomputed on every save)
+  readinessScore   Int       @default(0)
+  percentValidated Int       @default(0)
+  criteriaTotal    Int       @default(0)
+  criteriaValidated Int      @default(0)
+  status           PoVStatus @default(DRAFT)
+
+  // CRM hooks (Phases 3+)
+  salesforceOpportunityId String?
+  vivunPoVId              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PoVStatus {
+  DRAFT
+  ACTIVE
+  AT_RISK
+  COMPLETE
+  CANCELLED
+}
+
+// ── Central Library ───────────────────────────────────────────────────────────
+
+model Criterion {
+  id              String   @id // e.g. "XDR-01"
+  product         String
+  requirement     String
+  businessProblem String   @db.Text
+  successCriteria String   @db.Text
+  measurement     String   @db.Text
+  competitiveEdge String   @db.Text
+  edgeTags        String[] // ["PLATFORM","NATIVE"]
+  active          Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Outcome {
+  id          String   @id // e.g. "ransomware"
+  icon        String
+  color       String
+  title       String
+  description String
+  criteriaIds String[] // references Criterion.id
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+model Pillar {
+  tag           String   @id // "PLATFORM" etc.
+  name          String
+  what          String   @db.Text
+  vsCompetitors String   @db.Text
+  active        Boolean  @default(true)
+}
+
+model LibraryItem {
+  id        String      @id @default(cuid())
+  type      LibraryType
+  text      String
+  sortOrder Int         @default(0)
+  active    Boolean     @default(true)
+  meta      Json? // e.g. {priority:"High"} for default actions
+  updatedAt DateTime    @updatedAt
+}
+
+enum LibraryType {
+  DRIVER
+  RISK
+  ACTION
+  PRODUCT
+  INDUSTRY
+}
+
+// ── Audit Log ─────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String // "pov.create" | "library.criterion.update" etc.
+  resourceId String?
+  before     Json?
+  after      Json?
+  ip         String?
+  createdAt  DateTime @default(now())
+}
