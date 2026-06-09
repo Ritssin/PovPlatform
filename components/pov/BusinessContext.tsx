@@ -68,7 +68,7 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
   const [customDriver, setCustomDriver] = useState("");
   const [customRisk,   setCustomRisk]   = useState("");
 
-  const score = qualScore(scores);
+  const score   = qualScore(scores);
   const proceed = score >= 70;
 
   const updateField = useCallback((k: string, v: string) => {
@@ -161,20 +161,21 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
     router.push(`/pov/${pov.id}/criteria`);
   }
 
-  const inp = "w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white";
-  const lbl = "block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5";
+  const inp = "w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted transition-colors";
+  const lbl = "block text-xs font-semibold text-fg-muted uppercase tracking-wide mb-1.5";
+  const card = "bg-card rounded-2xl border border-border p-6";
 
   return (
     <div className="space-y-5 max-w-4xl">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-900">Business Context</h2>
+        <h2 className="text-2xl font-bold text-fg">Business Context</h2>
         <SaveIndicator status={status} />
       </div>
 
       {/* Engagement Details */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h3 className="font-bold text-slate-800 mb-4">Engagement Details</h3>
+      <div className={card}>
+        <h3 className="font-bold text-fg mb-4">Engagement Details</h3>
         <div className="grid md:grid-cols-2 gap-4">
           {[
             ["Customer Name", "customerName", "Acme Corp"],
@@ -205,36 +206,30 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
           </div>
           <div>
             <label className={lbl}>PoV Start Date</label>
-            <input
-              type="date"
-              className={inp}
-              value={startDate}
-              onChange={e => { setStartDate(e.target.value); save({ povStartDate: e.target.value || null }); }}
-            />
+            <input type="date" className={inp} value={startDate}
+              onChange={e => { setStartDate(e.target.value); save({ povStartDate: e.target.value || null }); }} />
           </div>
           <div>
             <label className={lbl}>PoV End Date</label>
-            <input
-              type="date"
-              className={inp}
-              value={endDate}
-              onChange={e => { setEndDate(e.target.value); save({ povEndDate: e.target.value || null }); }}
-            />
+            <input type="date" className={inp} value={endDate}
+              onChange={e => { setEndDate(e.target.value); save({ povEndDate: e.target.value || null }); }} />
           </div>
         </div>
       </div>
 
       {/* Business Drivers */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h3 className="font-bold text-slate-800 mb-1">Business Context & Goals</h3>
-        <p className="text-xs text-slate-500 mb-3">Select common drivers or add your own.</p>
+      <div className={card}>
+        <h3 className="font-bold text-fg mb-1">Business Context & Goals</h3>
+        <p className="text-xs text-fg-muted mb-3">Select common drivers or add your own.</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {commonDrivers.map(d => {
             const active = driverItems.some(x => x.text === d);
             return (
               <button key={d} onClick={() => toggleDriver(d)}
                 className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
-                  active ? "bg-slate-900 text-white border-slate-900" : "bg-white border-slate-300 text-slate-600 hover:border-slate-900"
+                  active
+                    ? "bg-[#0B1F3A] text-white border-[#0B1F3A]"
+                    : "bg-card border-border text-fg-dim hover:border-border-s"
                 }`}>
                 {active && "✓ "}{d}
               </button>
@@ -244,9 +239,9 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
         {driverItems.filter(d => !commonDrivers.includes(d.text)).length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {driverItems.filter(d => !commonDrivers.includes(d.text)).map(d => (
-              <span key={d.id} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-full text-xs font-medium text-slate-700">
+              <span key={d.id} className="flex items-center gap-1.5 px-3 py-1.5 bg-card-alt border border-border rounded-full text-xs font-medium text-fg">
                 {d.text}
-                <button onClick={() => removeDriver(d.id)} className="text-slate-400 hover:text-red-500 ml-0.5">×</button>
+                <button onClick={() => removeDriver(d.id)} className="text-fg-muted hover:text-red-500 ml-0.5">×</button>
               </span>
             ))}
           </div>
@@ -255,32 +250,34 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
           <input value={customDriver} onChange={e => setCustomDriver(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addDriver()}
             placeholder="Custom business driver or goal…"
-            className="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className={`flex-1 border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted`} />
           <button onClick={addDriver} disabled={!customDriver.trim()}
-            className="px-4 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-xl hover:bg-slate-700 disabled:opacity-40">
+            className="px-4 py-2.5 bg-[#0B1F3A] text-white text-sm font-medium rounded-xl hover:bg-[#0D2137] disabled:opacity-40 transition-colors">
             Add
           </button>
         </div>
-        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-          Additional context <span className="font-normal normal-case text-slate-400">(optional)</span>
+        <label className={`${lbl}`}>
+          Additional context <span className="font-normal normal-case text-fg-muted">(optional)</span>
         </label>
         <textarea rows={3} value={businessDrivers}
           onChange={e => { setBusinessDrivers(e.target.value); save({ businessDrivers: e.target.value }); }}
           placeholder="Additional detail on the customer's situation and key challenges…"
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400" />
+          className={`w-full rounded-xl border border-border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted`} />
       </div>
 
       {/* Products in scope */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h3 className="font-bold text-slate-800 mb-1">Solutions Being Evaluated</h3>
-        <p className="text-sm text-slate-500 mb-3">Select products — this filters the criteria library in the next step.</p>
+      <div className={card}>
+        <h3 className="font-bold text-fg mb-1">Solutions Being Evaluated</h3>
+        <p className="text-sm text-fg-muted mb-3">Select products — this filters the criteria library in the next step.</p>
         <div className="flex flex-wrap gap-2">
           {products.map(p => {
             const sel = selectedProducts.includes(p);
             return (
               <button key={p} onClick={() => toggleProduct(p)}
                 className={`px-4 py-2 rounded-full border text-sm font-medium transition-all ${
-                  sel ? "bg-slate-900 text-white border-slate-900" : "bg-white border-slate-300 hover:border-slate-900"
+                  sel
+                    ? "bg-[#0B1F3A] text-white border-[#0B1F3A]"
+                    : "bg-card border-border text-fg-dim hover:border-border-s"
                 }`}>
                 {p}
               </button>
@@ -289,31 +286,35 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
         </div>
       </div>
 
-      {/* Engagement Readiness (scorecard) */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
+      {/* Engagement Readiness */}
+      <div className={card}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-slate-800">Engagement Readiness</h3>
+          <h3 className="font-bold text-fg">Engagement Readiness</h3>
           <div className="flex items-center gap-3">
-            <span className={`text-2xl font-bold ${proceed ? "text-emerald-600" : "text-amber-600"}`}>{score}/90</span>
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${proceed ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+            <span className={`text-2xl font-bold ${proceed ? "text-emerald-500" : "text-amber-500"}`}>{score}/90</span>
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              proceed
+                ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300"
+                : "bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300"
+            }`}>
               {proceed ? "Ready to proceed" : "Under review"}
             </span>
           </div>
         </div>
         <div className="grid md:grid-cols-2 gap-3">
           {SCORE_LABELS.map(([key, title]) => (
-            <div key={key} className="bg-slate-50 rounded-xl border border-slate-200 p-3">
+            <div key={key} className="bg-card-alt rounded-xl border border-border p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-700">{title}</span>
-                <span className="text-sm font-bold bg-white border border-slate-200 rounded-full px-2.5 py-0.5">
+                <span className="text-sm font-medium text-fg-dim">{title}</span>
+                <span className="text-sm font-bold bg-card border border-border rounded-full px-2.5 py-0.5 text-fg">
                   {(scores as Record<string, number>)[key]}/5
                 </span>
               </div>
               <input type="range" min="1" max="5"
                 value={(scores as Record<string, number>)[key]}
                 onChange={e => updateScore(key, Number(e.target.value))}
-                className="w-full accent-blue-600" />
-              <div className="flex justify-between text-xs text-slate-400 mt-1">
+                className="w-full accent-blue-500" />
+              <div className="flex justify-between text-xs text-fg-muted mt-1">
                 <span>Weak</span><span>Strong</span>
               </div>
             </div>
@@ -322,38 +323,40 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
       </div>
 
       {/* Evaluation Timeline */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h3 className="font-bold text-slate-800 mb-4">Evaluation Timeline</h3>
+      <div className={card}>
+        <h3 className="font-bold text-fg mb-4">Evaluation Timeline</h3>
         <div className="space-y-2 mb-3">
           {milestones.map(m => (
             <div key={m.id} className="flex items-center gap-2">
               <input value={m.week} onChange={e => updateMilestone(m.id, "week", e.target.value)}
-                className="w-28 shrink-0 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-28 shrink-0 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted"
                 placeholder="Week 1" />
               <input value={m.activity} onChange={e => updateMilestone(m.id, "activity", e.target.value)}
-                className="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="flex-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted"
                 placeholder="Activity…" />
               <button onClick={() => removeMilestone(m.id)}
-                className="shrink-0 p-1.5 text-slate-300 hover:text-red-500 rounded hover:bg-red-50">×</button>
+                className="shrink-0 p-1.5 text-fg-muted hover:text-red-500 rounded hover:bg-red-50 dark:hover:bg-red-950/20">×</button>
             </div>
           ))}
         </div>
-        <button onClick={addMilestone} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+        <button onClick={addMilestone} className="text-sm text-accent hover:text-accent-h font-medium transition-colors">
           + Add milestone
         </button>
       </div>
 
       {/* Assumptions & Dependencies */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h3 className="font-bold text-slate-800 mb-1">Assumptions & Dependencies</h3>
-        <p className="text-xs text-slate-500 mb-3">Select common risks or add custom ones.</p>
+      <div className={card}>
+        <h3 className="font-bold text-fg mb-1">Assumptions & Dependencies</h3>
+        <p className="text-xs text-fg-muted mb-3">Select common risks or add custom ones.</p>
         <div className="flex flex-wrap gap-2 mb-3">
           {commonRisks.map(r => {
             const active = riskItems.some(x => x.text === r);
             return (
               <button key={r} onClick={() => toggleRisk(r)}
                 className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
-                  active ? "bg-slate-900 text-white border-slate-900" : "bg-white border-slate-300 text-slate-600 hover:border-slate-900"
+                  active
+                    ? "bg-[#0B1F3A] text-white border-[#0B1F3A]"
+                    : "bg-card border-border text-fg-dim hover:border-border-s"
                 }`}>
                 {active && "✓ "}{r}
               </button>
@@ -363,9 +366,9 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
         {riskItems.filter(r => !commonRisks.includes(r.text)).length > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {riskItems.filter(r => !commonRisks.includes(r.text)).map(r => (
-              <span key={r.id} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-full text-xs font-medium text-slate-700">
+              <span key={r.id} className="flex items-center gap-1.5 px-3 py-1.5 bg-card-alt border border-border rounded-full text-xs font-medium text-fg">
                 {r.text}
-                <button onClick={() => removeRisk(r.id)} className="text-slate-400 hover:text-red-500">×</button>
+                <button onClick={() => removeRisk(r.id)} className="text-fg-muted hover:text-red-500">×</button>
               </span>
             ))}
           </div>
@@ -374,9 +377,9 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
           <input value={customRisk} onChange={e => setCustomRisk(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addRisk()}
             placeholder="Custom risk or dependency…"
-            className="flex-1 border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            className={`flex-1 border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted`} />
           <button onClick={addRisk} disabled={!customRisk.trim()}
-            className="px-4 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-xl hover:bg-slate-700 disabled:opacity-40">
+            className="px-4 py-2.5 bg-[#0B1F3A] text-white text-sm font-medium rounded-xl hover:bg-[#0D2137] disabled:opacity-40 transition-colors">
             Add
           </button>
         </div>
@@ -385,7 +388,7 @@ export default function BusinessContextForm({ pov, commonDrivers, commonRisks, i
       {/* Navigation */}
       <div className="flex justify-end">
         <button onClick={handleNext}
-          className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-700 transition-all">
+          className="flex items-center gap-2 px-6 py-2.5 bg-[#0B1F3A] text-white font-semibold rounded-xl hover:bg-[#0D2137] transition-all">
           Define Success Criteria →
         </button>
       </div>

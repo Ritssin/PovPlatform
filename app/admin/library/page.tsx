@@ -22,14 +22,14 @@ export default async function AdminLibraryPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Library Management</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <h1 className="text-xl font-bold text-fg">Library Management</h1>
+          <p className="text-sm text-fg-muted mt-1">
             Manage criteria, outcomes, pillars and list items. Changes apply to all new PoVs immediately.
           </p>
         </div>
         <a
           href="/api/library/export/html"
-          className="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg transition-colors"
+          className="text-sm bg-card-alt hover:bg-border text-fg-dim font-medium px-4 py-2 rounded-lg transition-colors"
         >
           Export Partner HTML
         </a>

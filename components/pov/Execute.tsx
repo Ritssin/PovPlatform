@@ -10,11 +10,11 @@ interface Props { pov: PoV; criteriaLibrary: Criterion[]; outcomeLibrary?: Outco
 
 const STATUS_OPTIONS = ["Not Started","In Progress","Validated","Blocked","Failed"] as const;
 const STATUS_COLORS: Record<string,string> = {
-  "Validated":   "text-emerald-700 bg-emerald-50 border-emerald-200",
-  "In Progress": "text-blue-700 bg-blue-50 border-blue-200",
-  "Blocked":     "text-amber-700 bg-amber-50 border-amber-200",
-  "Failed":      "text-red-700 bg-red-50 border-red-200",
-  "Not Started": "text-slate-600 bg-slate-50 border-slate-200",
+  "Validated":   "text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60",
+  "In Progress": "text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/60",
+  "Blocked":     "text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/60",
+  "Failed":      "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/60",
+  "Not Started": "text-fg-dim bg-card-alt border-border",
 };
 
 export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] }: Props) {
@@ -48,8 +48,12 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
   const isComplete   = validated === total && total > 0;
   const isAtRisk     = !isComplete && povEndDate && daysLeft !== null && daysLeft <= 5;
   const overallStatus = isComplete ? "Complete" : isAtRisk ? "At Risk" : "On Track";
-  const statusColor   = isComplete ? "bg-emerald-100 text-emerald-700" : isAtRisk ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700";
-  const barColor      = isComplete ? "bg-emerald-500" : isAtRisk ? "bg-amber-500" : "bg-blue-500";
+  const statusColor   = isComplete
+    ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300"
+    : isAtRisk
+    ? "bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-300"
+    : "bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300";
+  const barColor = isComplete ? "bg-emerald-500" : isAtRisk ? "bg-amber-500" : "bg-blue-500";
 
   const updateTracking = (cid: string, field: keyof TrackingEntry, value: string) => {
     const existing = tracking[cid] ?? { status: "Not Started" as const, findings: "", owner: "" };
@@ -107,12 +111,15 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
     a.click(); URL.revokeObjectURL(url);
   };
 
-  const iCell = "border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white";
+  const iCell = "border border-border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted transition-colors";
+  const card  = "bg-card rounded-2xl border border-border";
+  const inp   = "w-full border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted transition-colors";
+  const lbl   = "block text-xs font-semibold text-fg-muted uppercase tracking-wide mb-1.5";
 
   return (
     <div className="space-y-5 max-w-5xl">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-900">Execute</h2>
+        <h2 className="text-2xl font-bold text-fg">Execute</h2>
         <SaveIndicator status={status} />
       </div>
 
@@ -126,19 +133,19 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
             {selectedOutcomes.map(o => {
               const criteriaInPlan = planCriteriaIds.filter(id => o.criteriaIds.includes(id));
               const validatedCount = criteriaInPlan.filter(id => tracking[id]?.status === "Validated").length;
-              const total = criteriaInPlan.length;
-              const pctO = total > 0 ? Math.round((validatedCount / total) * 100) : 0;
+              const t = criteriaInPlan.length;
+              const pctO = t > 0 ? Math.round((validatedCount / t) * 100) : 0;
               return (
-                <div key={o.id} className="bg-white rounded-xl border border-slate-200 p-3 text-center">
+                <div key={o.id} className="bg-card rounded-xl border border-border p-3 text-center">
                   <div className="text-xl mb-1">{o.icon}</div>
-                  <p className="text-xs font-semibold text-slate-700 leading-tight mb-2">{o.title}</p>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-1">
+                  <p className="text-xs font-semibold text-fg leading-tight mb-2">{o.title}</p>
+                  <div className="h-1.5 bg-card-alt border border-border rounded-full overflow-hidden mb-1">
                     <div
                       className={`h-full rounded-full transition-all ${pctO === 100 ? "bg-emerald-500" : "bg-blue-400"}`}
                       style={{ width: `${pctO}%` }}
                     />
                   </div>
-                  <p className="text-xs text-slate-400">{validatedCount}/{total}</p>
+                  <p className="text-xs text-fg-muted">{validatedCount}/{t}</p>
                 </div>
               );
             })}
@@ -147,9 +154,9 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
       })()}
 
       {/* Status bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5">
-        <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <div className={`${card} p-5`}>
+        <h3 className="font-bold text-fg mb-4 flex items-center gap-2">
+          <svg className="w-4 h-4 text-fg-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
             <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
@@ -159,61 +166,61 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
           {[["Start Date","date",povStartDate,setPovStartDate,"povStartDate"],
             ["End Date","date",povEndDate,setPovEndDate,"povEndDate"]].map(([label,type,val,setter,key]) => (
             <div key={key as string}>
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{label as string}</label>
+              <label className={lbl}>{label as string}</label>
               <input type={type as string} value={val as string}
                 onChange={e => { (setter as (v:string)=>void)(e.target.value); save({ [key as string]: e.target.value || null }); }}
-                className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+                className={inp}/>
             </div>
           ))}
           <div className="text-center">
-            <div className="text-3xl font-bold text-slate-900 leading-none">{daysLeft ?? "—"}</div>
-            <div className="text-xs text-slate-500 mt-1">days remaining</div>
+            <div className="text-3xl font-bold text-fg leading-none">{daysLeft ?? "—"}</div>
+            <div className="text-xs text-fg-muted mt-1">days remaining</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-slate-900 leading-none">{pct}%</div>
-            <div className="text-xs text-slate-500 mt-1">{validated}/{total} validated</div>
+            <div className="text-3xl font-bold text-fg leading-none">{pct}%</div>
+            <div className="text-xs text-fg-muted mt-1">{validated}/{total} validated</div>
             <span className={`inline-flex mt-2 px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColor}`}>{overallStatus}</span>
           </div>
         </div>
         {total > 0 && (
-          <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden">
+          <div className="bg-card-alt border border-border rounded-full h-2.5 overflow-hidden">
             <div className={`h-2.5 rounded-full transition-all ${barColor}`} style={{width:`${pct}%`}}/>
           </div>
         )}
       </div>
 
       {/* Action Items */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="font-bold text-slate-800">Activities & Actions</h3>
+      <div className={`${card} overflow-hidden`}>
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <h3 className="font-bold text-fg">Activities & Actions</h3>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">{actionItems.filter(a=>a.status==="Done").length}/{actionItems.length} complete</span>
-            <button onClick={addAction} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-lg hover:bg-slate-700">
+            <span className="text-sm text-fg-muted">{actionItems.filter(a=>a.status==="Done").length}/{actionItems.length} complete</span>
+            <button onClick={addAction} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0B1F3A] text-white text-xs font-medium rounded-lg hover:bg-[#0D2137] transition-colors">
               + Add
             </button>
           </div>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-border">
           {actionItems.map(a => {
             const isDone = a.status === "Done";
             const isOverdue = a.dueDate && new Date(a.dueDate) < today && !isDone;
             return (
-              <div key={a.id} className={`flex items-center gap-3 px-4 py-3 ${isOverdue ? "bg-amber-50" : isDone ? "bg-slate-50/60" : ""}`}>
+              <div key={a.id} className={`flex items-center gap-3 px-4 py-3 ${isOverdue ? "bg-amber-50 dark:bg-amber-950/20" : isDone ? "bg-card-alt/60" : ""}`}>
                 <input type="checkbox" checked={isDone}
                   onChange={e => updateAction(a.id, "status", e.target.checked ? "Done" : "Not Started")}
-                  className="h-4 w-4 rounded border-slate-300 text-emerald-600 shrink-0"/>
+                  className="h-4 w-4 rounded border-border text-emerald-600 shrink-0"/>
                 <input value={a.task} onChange={e => updateAction(a.id,"task",e.target.value)}
-                  className={`flex-1 min-w-0 text-sm bg-transparent border-none outline-none ${isDone ? "line-through text-slate-400" : "text-slate-800"}`}
+                  className={`flex-1 min-w-0 text-sm bg-transparent border-none outline-none ${isDone ? "line-through text-fg-muted" : "text-fg"}`}
                   placeholder="Task description…"/>
                 <input value={a.owner} onChange={e => updateAction(a.id,"owner",e.target.value)}
                   placeholder="Owner" className={`${iCell} w-24 shrink-0`}/>
                 <input type="date" value={a.dueDate} onChange={e => updateAction(a.id,"dueDate",e.target.value)}
-                  className={`${iCell} w-36 shrink-0 ${isOverdue ? "text-amber-700 border-amber-300" : ""}`}/>
+                  className={`${iCell} w-36 shrink-0 ${isOverdue ? "text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700" : ""}`}/>
                 <select value={a.status} onChange={e => updateAction(a.id,"status",e.target.value)}
                   className={`${iCell} w-32 shrink-0`}>
                   {["Not Started","In Progress","Done","Blocked"].map(s=><option key={s}>{s}</option>)}
                 </select>
-                <button onClick={() => removeAction(a.id)} className="p-1 text-slate-300 hover:text-red-500 shrink-0 rounded hover:bg-red-50 text-xs">✕</button>
+                <button onClick={() => removeAction(a.id)} className="p-1 text-fg-muted hover:text-red-500 shrink-0 rounded hover:bg-red-50 dark:hover:bg-red-950/20 text-xs transition-colors">✕</button>
               </div>
             );
           })}
@@ -222,16 +229,16 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
 
       {/* Criteria Tracking */}
       {planCriteria.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200">
-            <h3 className="font-bold text-slate-800">Success Criteria Progress</h3>
+        <div className={`${card} overflow-hidden`}>
+          <div className="px-6 py-4 border-b border-border">
+            <h3 className="font-bold text-fg">Success Criteria Progress</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50">
+              <thead className="bg-card-alt border-b border-border">
                 <tr>
                   {["Criteria","Product","Owner","Status","Evidence / Findings"].map(h=>(
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                    <th key={h} className="text-left px-4 py-3 text-xs font-bold text-fg-muted uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -239,13 +246,13 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
                 {planCriteria.map(c => {
                   const t: TrackingEntry = tracking[c.id] ?? { status:"Not Started", findings:"", owner:"" };
                   return (
-                    <tr key={c.id} className="border-t border-slate-100 align-top">
+                    <tr key={c.id} className="border-t border-border align-top hover:bg-card-alt transition-colors">
                       <td className="px-4 py-3 min-w-[200px]">
-                        <div className="font-medium text-slate-800 text-sm">{c.requirement}</div>
-                        <div className="text-xs font-mono text-slate-400 mt-0.5">{c.id}</div>
+                        <div className="font-medium text-fg text-sm">{c.requirement}</div>
+                        <div className="text-xs font-mono text-fg-muted mt-0.5">{c.id}</div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="text-xs bg-slate-100 px-2 py-1 rounded">{c.product}</span>
+                        <span className="text-xs bg-card-alt border border-border px-2 py-1 rounded text-fg-dim">{c.product}</span>
                       </td>
                       <td className="px-4 py-3 min-w-[110px]">
                         <input value={t.owner} onChange={e => updateTracking(c.id,"owner",e.target.value)}
@@ -253,7 +260,7 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
                       </td>
                       <td className="px-4 py-3">
                         <select value={t.status} onChange={e => updateTracking(c.id,"status",e.target.value)}
-                          className={`border rounded-lg px-2 py-1.5 text-xs font-medium focus:outline-none ${STATUS_COLORS[t.status] ?? STATUS_COLORS["Not Started"]}`}>
+                          className={`border rounded-lg px-2 py-1.5 text-xs font-medium focus:outline-none transition-colors ${STATUS_COLORS[t.status] ?? STATUS_COLORS["Not Started"]}`}>
                           {STATUS_OPTIONS.map(s=><option key={s}>{s}</option>)}
                         </select>
                       </td>
@@ -272,32 +279,32 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
       )}
 
       {/* Progress Notes */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h3 className="font-bold text-slate-800 mb-4">Progress Notes</h3>
+      <div className={`${card} p-6`}>
+        <h3 className="font-bold text-fg mb-4">Progress Notes</h3>
         <div className="space-y-2 mb-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-              Meeting or update title <span className="font-normal normal-case text-slate-400">(optional)</span>
+            <label className={lbl}>
+              Meeting or update title <span className="font-normal normal-case text-fg-muted">(optional)</span>
             </label>
             <input value={logTitle} onChange={e => setLogTitle(e.target.value)}
               placeholder="e.g. Week 1 customer call, Internal review…"
-              className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+              className={`w-full rounded-xl border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted`}/>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Notes</label>
+            <label className={lbl}>Notes</label>
             <div className="flex gap-2">
               <textarea rows={3} value={logNotes} onChange={e => setLogNotes(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && e.ctrlKey) { e.preventDefault(); logEntry(); }}}
                 placeholder="Progress, findings, blockers… (Ctrl+Enter to save)"
-                className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+                className={`flex-1 rounded-xl border border-border px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted`}/>
               <button onClick={logEntry} disabled={!logNotes.trim()}
-                className="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-xl hover:bg-slate-700 disabled:opacity-40 self-end whitespace-nowrap">
+                className="px-4 py-2 bg-[#0B1F3A] text-white text-sm font-medium rounded-xl hover:bg-[#0D2137] disabled:opacity-40 self-end whitespace-nowrap transition-colors">
                 Log it
               </button>
             </div>
           </div>
         </div>
-        {updateLog.length === 0 && <p className="text-sm text-slate-400 italic">No updates logged yet.</p>}
+        {updateLog.length === 0 && <p className="text-sm text-fg-muted italic">No updates logged yet.</p>}
         <div className="space-y-3">
           {updateLog.map((entry, i) => {
             const prev = updateLog[i + 1];
@@ -306,16 +313,16 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
               <div key={entry.id}>
                 {dayGap > 0 && (
                   <div className="flex items-center gap-2 my-2">
-                    <div className="flex-1 h-px bg-slate-200"/>
-                    <span className="text-xs text-slate-400">{dayGap === 1 ? "1 day later" : `${dayGap} days later`}</span>
-                    <div className="flex-1 h-px bg-slate-200"/>
+                    <div className="flex-1 h-px bg-border"/>
+                    <span className="text-xs text-fg-muted">{dayGap === 1 ? "1 day later" : `${dayGap} days later`}</span>
+                    <div className="flex-1 h-px bg-border"/>
                   </div>
                 )}
-                <div className="bg-slate-50 rounded-xl p-4">
+                <div className="bg-card-alt rounded-xl p-4 border border-border">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
-                      {entry.title && <p className="font-semibold text-slate-800 text-sm">{entry.title}</p>}
-                      <p className="text-xs text-slate-400 font-mono">
+                      {entry.title && <p className="font-semibold text-fg text-sm">{entry.title}</p>}
+                      <p className="text-xs text-fg-muted font-mono">
                         {new Date(entry.date).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})}
                         {" · "}
                         {new Date(entry.date).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})}
@@ -324,9 +331,9 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
                     <button onClick={() => {
                       const next = updateLog.filter(e => e.id !== entry.id);
                       setUpdateLog(next); save({ updateLog: next });
-                    }} className="p-1.5 text-slate-300 hover:text-red-500 rounded text-xs">✕</button>
+                    }} className="p-1.5 text-fg-muted hover:text-red-500 rounded text-xs transition-colors">✕</button>
                   </div>
-                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{entry.text}</p>
+                  <p className="text-sm text-fg-dim leading-relaxed whitespace-pre-wrap">{entry.text}</p>
                 </div>
               </div>
             );
@@ -335,39 +342,39 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
       </div>
 
       {/* Summary & Next Steps */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6">
-        <h3 className="font-bold text-slate-800 mb-4">Summary & Next Steps</h3>
+      <div className={`${card} p-6`}>
+        <h3 className="font-bold text-fg mb-4">Summary & Next Steps</h3>
         <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Outcome Summary</label>
+            <label className={lbl}>Outcome Summary</label>
             <textarea rows={6} value={outcomeSummary}
               onChange={e => { setOutcomeSummary(e.target.value); save({ outcomeSummary: e.target.value }); }}
               placeholder="Summarise the key outcomes, improvements measured, and business value demonstrated"
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+              className={`w-full rounded-xl border border-border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted`}/>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Next Steps</label>
+            <label className={lbl}>Next Steps</label>
             <textarea rows={6} value={nextSteps}
               onChange={e => { setNextSteps(e.target.value); save({ nextSteps: e.target.value }); }}
               placeholder="Agreed next steps, rollout phases, and key decision dates"
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+              className={`w-full rounded-xl border border-border px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 bg-card text-fg placeholder:text-fg-muted`}/>
           </div>
         </div>
       </div>
 
-      {/* Export panel */}
-      <div className="bg-slate-900 rounded-2xl p-6 text-white">
+      {/* Export panel — stays dark in both modes intentionally */}
+      <div className="bg-[#0B1F3A] rounded-2xl p-6 text-white">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <div className="text-xs uppercase tracking-widest text-slate-400 mb-1">Reports</div>
+            <div className="text-xs uppercase tracking-widest text-blue-300/70 mb-1">Reports</div>
             <h3 className="text-lg font-bold">Share Your Evaluation</h3>
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-blue-300/80 text-sm mt-1">
               {validated}/{total} validated · {pov.customerName} · {new Date().toLocaleDateString("en-GB",{month:"short",year:"numeric"})}
             </p>
           </div>
           <div className="flex gap-3 flex-wrap">
             <button onClick={exportWord}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white text-slate-900 font-semibold rounded-xl hover:bg-slate-100 transition-all text-sm">
+              className="flex items-center gap-2 px-5 py-2.5 bg-white text-[#0B1F3A] font-semibold rounded-xl hover:bg-slate-100 transition-all text-sm">
               Word Summary
             </button>
             <button onClick={exportJson}
@@ -380,11 +387,11 @@ export default function ExecuteForm({ pov, criteriaLibrary, outcomeLibrary = [] 
 
       <div className="flex justify-between">
         <button onClick={() => router.push(`/pov/${pov.id}/criteria`)}
-          className="flex items-center gap-2 px-5 py-2.5 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50 text-sm">
+          className="flex items-center gap-2 px-5 py-2.5 border border-border text-fg-dim rounded-xl hover:bg-card-alt text-sm transition-colors">
           ← Back to Criteria
         </button>
         <button onClick={() => router.push("/dashboard")}
-          className="flex items-center gap-2 px-5 py-2.5 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50 text-sm">
+          className="flex items-center gap-2 px-5 py-2.5 border border-border text-fg-dim rounded-xl hover:bg-card-alt text-sm transition-colors">
           ← Dashboard
         </button>
       </div>

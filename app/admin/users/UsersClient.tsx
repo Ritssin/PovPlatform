@@ -19,10 +19,10 @@ const ROLE_LABELS: Record<Role, string> = {
 };
 
 const ROLE_COLORS: Record<Role, string> = {
-  SE:      "bg-blue-100 text-blue-700",
-  SME:     "bg-purple-100 text-purple-700",
-  MANAGER: "bg-amber-100 text-amber-700",
-  ADMIN:   "bg-green-100 text-green-700",
+  SE:      "bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300",
+  SME:     "bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300",
+  MANAGER: "bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300",
+  ADMIN:   "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-300",
 };
 
 export default function UsersClient({ users: initial }: { users: User[] }) {
@@ -56,36 +56,36 @@ export default function UsersClient({ users: initial }: { users: User[] }) {
 
   if (users.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-400 text-sm">
+      <div className="bg-card rounded-xl border border-border p-8 text-center text-fg-muted text-sm">
         No users yet. Create the first user above.
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div className="bg-card rounded-xl border border-border overflow-hidden">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50">
-            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Name</th>
-            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
-            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Role</th>
-            <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Created</th>
+          <tr className="border-b border-border bg-card-alt">
+            <th className="text-left px-4 py-3 text-xs font-semibold text-fg-muted uppercase tracking-wide">Name</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-fg-muted uppercase tracking-wide">Email</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-fg-muted uppercase tracking-wide">Role</th>
+            <th className="text-left px-4 py-3 text-xs font-semibold text-fg-muted uppercase tracking-wide">Created</th>
             <th className="px-4 py-3" />
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-border">
           {users.map(user => (
-            <tr key={user.id} className="hover:bg-slate-50 transition-colors">
-              <td className="px-4 py-3 font-medium text-slate-800">{user.name ?? "—"}</td>
-              <td className="px-4 py-3 text-slate-600">{user.email}</td>
+            <tr key={user.id} className="hover:bg-card-alt transition-colors">
+              <td className="px-4 py-3 font-medium text-fg">{user.name ?? "—"}</td>
+              <td className="px-4 py-3 text-fg-dim">{user.email}</td>
               <td className="px-4 py-3">
                 {editId === user.id ? (
                   <div className="flex items-center gap-2">
                     <select
                       value={editRole}
                       onChange={e => setEditRole(e.target.value as Role)}
-                      className="text-xs border border-slate-300 rounded px-2 py-1"
+                      className="text-xs border border-border rounded px-2 py-1 bg-card text-fg"
                     >
                       {Object.values(Role).map(r => (
                         <option key={r} value={r}>{ROLE_LABELS[r]}</option>
@@ -98,7 +98,7 @@ export default function UsersClient({ users: initial }: { users: User[] }) {
                     >
                       Save
                     </button>
-                    <button onClick={() => setEditId(null)} className="text-xs text-slate-400 hover:text-slate-600">
+                    <button onClick={() => setEditId(null)} className="text-xs text-fg-muted hover:text-fg">
                       Cancel
                     </button>
                   </div>
@@ -111,7 +111,7 @@ export default function UsersClient({ users: initial }: { users: User[] }) {
                   </button>
                 )}
               </td>
-              <td className="px-4 py-3 text-slate-400 text-xs">
+              <td className="px-4 py-3 text-fg-muted text-xs">
                 {new Date(user.createdAt).toLocaleDateString()}
               </td>
               <td className="px-4 py-3 text-right">

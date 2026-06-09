@@ -18,7 +18,7 @@ interface Props {
 export default function PoVStepNav({ povId, customerName, score }: Props) {
   const pathname = usePathname();
   const currentSegment = pathname.split("/").pop() ?? "";
-  const currentStep = STEPS.findIndex((s) => s.segment === currentSegment);
+  const currentStep    = STEPS.findIndex((s) => s.segment === currentSegment);
 
   return (
     <div className="bg-[#0B1F3A] text-white -mx-4 px-4 py-0 flex items-stretch justify-between border-t border-white/10 min-h-[48px]">
@@ -50,7 +50,7 @@ export default function PoVStepNav({ povId, customerName, score }: Props) {
             <Link
               key={step.segment}
               href={`/pov/${povId}/${step.segment}`}
-              className={`flex items-center gap-2 px-4 text-xs font-medium border-b-2 transition-all ${
+              className={`flex items-center gap-2 px-4 text-xs font-semibold border-b-2 transition-all ${
                 active
                   ? "border-blue-400 text-white bg-white/10"
                   : "border-transparent text-blue-300 hover:text-white hover:bg-white/5"
@@ -62,8 +62,8 @@ export default function PoVStepNav({ povId, customerName, score }: Props) {
                 {done ? "✓" : i + 1}
               </span>
               <div className="hidden sm:block text-left">
-                <div>{step.label}</div>
-                <div className="opacity-60 font-normal">{step.sub}</div>
+                <div className="font-semibold">{step.label}</div>
+                <div className="opacity-50 font-normal text-[10px]">{step.sub}</div>
               </div>
             </Link>
           );

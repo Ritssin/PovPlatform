@@ -37,49 +37,49 @@ export default async function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-slate-900">User Management</h1>
-        <p className="text-sm text-slate-500 mt-1">Create and manage platform users.</p>
+        <h1 className="text-xl font-bold text-fg">User Management</h1>
+        <p className="text-sm text-fg-muted mt-1">Create and manage platform users.</p>
       </div>
 
       {/* Create user form */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <h2 className="text-sm font-semibold text-slate-700 mb-4">Add New User</h2>
+      <div className="bg-card rounded-xl border border-border p-5">
+        <h2 className="text-sm font-semibold text-fg mb-4">Add New User</h2>
         <form action={createUser} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Full name</label>
+            <label className="block text-xs font-medium text-fg-dim mb-1">Full name</label>
             <input
               name="name"
               type="text"
               required
               placeholder="Jane Smith"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card text-fg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Email address</label>
+            <label className="block text-xs font-medium text-fg-dim mb-1">Email address</label>
             <input
               name="email"
               type="email"
               required
               placeholder="jane@sophos.com"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card text-fg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Password (min 8 chars)</label>
+            <label className="block text-xs font-medium text-fg-dim mb-1">Password (min 8 chars)</label>
             <input
               name="password"
               type="password"
               required
               minLength={8}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card text-fg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Role</label>
+            <label className="block text-xs font-medium text-fg-dim mb-1">Role</label>
             <select
               name="role"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card text-fg focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="SE">SE</option>
               <option value="SME">SME</option>

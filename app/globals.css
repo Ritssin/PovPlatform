@@ -2,6 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design tokens — light mode ─────────────────────────────── */
+:root {
+  --bg:         #EEF3F8;
+  --card:       #FFFFFF;
+  --card-alt:   #F5F8FB;
+  --border:     #D1DCE8;
+  --border-s:   #9FB8D4;
+  --fg:         #0B1F3A;
+  --fg-dim:     #4A6785;
+  --fg-muted:   #8AA4BF;
+  --accent:     #0049BD;
+  --accent-h:   #003DA0;
+}
+
+/* ── Design tokens — dark mode ──────────────────────────────── */
+html.dark {
+  --bg:         #071326;
+  --card:       #0D2137;
+  --card-alt:   #0A1B30;
+  --border:     #1A3254;
+  --border-s:   #2A4F7A;
+  --fg:         #E8F0F8;
+  --fg-dim:     #7BA4C4;
+  --fg-muted:   #4A6785;
+  --accent:     #1E6FFF;
+  --accent-h:   #0056E0;
+}
+
 @layer base {
   * { box-sizing: border-box; }
   body { margin: 0; }
